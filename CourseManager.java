@@ -73,6 +73,23 @@ public class CourseManager {
 	 return false;
  }
  
+ public boolean checkIfFIDExists(int id) {
+	 String query = "Select * from Faculty where facultyID = " + id;
+	 try {
+		 Statement stmt = con.createStatement();
+		 ResultSet rs = stmt.executeQuery(query);
+		 while (rs.next()) {
+			 int checkID = rs.getInt("facultyID");
+			 System.out.printf("Faculty Name = %s\n", rs.getString("facultyName"));
+			 if (checkID == id) return true;
+			 else return false;
+		 }
+	 } catch ( SQLException e ) {
+		 e.printStackTrace();
+	 }
+	 return false;
+ }
+ 
  public void printEnrolledCourses(int id) {
 	 String query = "select cs.courseName from Courses cs join Enrollment en on en.courseID = cs.courseID where en.studentID = " + id;
 	 try {
@@ -127,7 +144,92 @@ public class CourseManager {
 	 }
  }
  
+ public int getLastCourseID() {
+	 String query = "select * from (select courseID from Courses order by courseID desc) where rownum = 1";
+	 try {
+		 Statement stmt = con.createStatement();
+		 ResultSet rs = stmt.executeQuery(query);
+		 while (rs.next()) {
+		 	return rs.getInt("courseID");
+		 }
+	 } catch (SQLException e) {
+		 e.printStackTrace();
+	 }
+	 return 0;
+ }
+ 
  public void createCourse() {
+	 
+	 int id = getLastCourseID();
+	 
+	 System.out.printf("Last Course ID: %d\n", id);
+	 
+	 int courseID = ++id;
+	 
+	 System.out.print("Enter Course Name: ");
+	 String courseName = scan.nextLine();
+	 
+	 String semester = "default";
+	 while (true) {
+		 System.out.printf("Choose Semester:\n1. Fall\n2. Spring\n3. Summer\nSemester: ");
+		 int semesterInt = scan.nextInt();
+		 switch(semesterInt) {
+		 case 1: semester = "Fall"; break;
+		 case 2: semester = "Spring"; break;
+		 case 3: semester = "Summer"; break;
+		 default: System.out.println("Enter a vaild number!");
+		 }
+		 if (!semester.equals("default")) break;
+	 }
+	 
+	 int year = Calendar.getInstance().get(Calendar.YEAR);
+	 
+	 while (true) {
+		 System.out.print("Enter a year (Hint: Should be greater than or equal to the current year): ");
+		 int yearInput = scan.nextInt();
+		 if (yearInput < year || yearInput > 2100) {
+			 System.out.println("Enter a valid year between the current year and 2100AD");
+		 } else {
+			 year = yearInput;
+			 break;
+		 }
+	 }
+	 
+	 scan.nextLine();
+	 
+	 System.out.print("Enter Class Time: ");
+	 String meetsAt = scan.nextLine();
+	 
+	 System.out.print("Enter Room Number: ");
+	 String room = scan.nextLine();
+	 
+	 int facultyID = 0;
+	 while (true) {
+		 System.out.print("Enter a faculty ID for the professor teching the course: ");
+		 facultyID = scan.nextInt();
+		 
+		 if (checkIfFIDExists(facultyID))
+			 break;
+		 else
+			 System.out.println("Enter a valid Faculty ID");
+	 }
+	 
+	 System.out.println();
+	 
+	 String update = "Insert into Courses (courseID, courseName, semester, year, meetsAt, room, facultyID) values (" 
+	 + courseID + ", '" + courseName + "', '" + semester + "', " + year + ", '" + meetsAt + "', '" + room + "', " + facultyID + ")";
+	 
+	 try {
+		 Statement stmt = con.createStatement();
+		 stmt.executeUpdate(update);
+		 stmt.close();
+		 System.out.println("-----Sucessfully Created Course-----");
+	 } catch (SQLException e) {
+		 e.printStackTrace();
+	 }
+ }
+ 
+ public void modifyCourse(int id) {
 	 
  }
  
@@ -259,6 +361,22 @@ public class CourseManager {
  }
  
  public void printFaculty() {
+	 CourseManager cm = new CourseManager();
+	 int id;
+	 while (true) {
+		 System.out.println("------------------");
+		 System.out.printf("Enter your ID: ");
+		 
+		 id = scan.nextInt();
+		 
+		 if (!cm.checkIfFIDExists(id)) {
+			 System.out.println("This Faculty ID does not exist. Try again!");
+			 return;
+		 } else {
+			 break;
+		 }
+	 }
+	 
 	 while (true) {
 		 System.out.println("------------------");
 		 System.out.println("Your options are:");
@@ -267,13 +385,15 @@ public class CourseManager {
 		 
 		 int selection = scan.nextInt();
 		 
+		 scan.nextLine();
+		 
 		 System.out.println();
 		 
 		 if (selection == 8) break;
 		 
 		 switch (selection) {
 		 case 1: createCourse(); break;
-		 case 2: break;
+		 case 2: modifyCourse(id); break;
 		 case 3: break;
 		 case 4: break;
 		 case 5: break;
@@ -310,5 +430,3 @@ public class CourseManager {
   cm.print();
  }
 }
-
-//select table_name from user_tables;
