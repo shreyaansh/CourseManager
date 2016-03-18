@@ -56,6 +56,81 @@ public class CourseManager {
   catch (SQLException e){}
  }
 
+ public boolean checkIfSIDExists(int id) {
+	 String query = "Select * from Students where studentID = " + id;
+	 try {
+		 Statement stmt = con.createStatement();
+		 ResultSet rs = stmt.executeQuery(query);
+		 while (rs.next()) {
+			 int checkID = rs.getInt("studentID");
+			 System.out.printf("Student Name = %s\n", rs.getString("studentName"));
+			 if (checkID == id) return true;
+			 else return false;
+		 }
+	 } catch ( SQLException e ) {
+		 e.printStackTrace();
+	 }
+	 return false;
+ }
+ 
+ public void printEnrolledCourses(int id) {
+	 String query = "select cs.courseName from Courses cs join Enrollment en on en.courseID = cs.courseID where en.studentID = " + id;
+	 try {
+		 Statement stmt = con.createStatement();
+		 ResultSet rs = stmt.executeQuery(query);
+		 
+		 int i = 1;
+		 
+		 while (rs.next()) {
+			 System.out.printf("Course %d: %s\n", i, rs.getString("courseName"));
+			 i++;
+		 }
+		 
+		 System.out.println();
+		 
+	 } catch (SQLException e) {
+		 e.printStackTrace();
+	 }
+ }
+ 
+ public void printDepartmentInfo() {
+	 String query = "select * from Departments";
+	 try {
+		 Statement stmt = con.createStatement();
+		 ResultSet rs = stmt.executeQuery(query);
+		 
+		 while (rs.next()) {
+			 System.out.printf("Department ID: %d\tDepartment Name: %-20s\tDepartment Head: %-20s\n", rs.getInt("departmentID"), rs.getString("name"), rs.getString("headName"));
+		 }
+		 
+		 System.out.println();
+		 
+	 } catch (SQLException e) {
+		 e.printStackTrace();
+	 }
+ }
+ 
+ public void printFacultyInfo() {
+	 String query = "select fn.facultyID, fn.facultyName, db.name from Faculty fn join Departments db on db.departmentID = fn.departmentID";
+	 try {
+		 Statement stmt = con.createStatement();
+		 ResultSet rs = stmt.executeQuery(query);
+		 
+		 while (rs.next()) {
+			 System.out.printf("Faculty ID: %d\tFaculty Name: %-20s\t Faculty Department: %-20s\n", rs.getInt("facultyID"), rs.getString("facultyName"), rs.getString("name"));
+		 }
+		 
+		 System.out.println();
+		 
+	 } catch (SQLException e) {
+		 e.printStackTrace();
+	 }
+ }
+ 
+ public void createCourse() {
+	 
+ }
+ 
  /* Nested Query: Names of students enrolled in a course */
  public void getStudentsInClass( String cname ) {
   String query = "Select snum from Enrolled where cname = '" + cname + "'";
@@ -114,8 +189,6 @@ public class CourseManager {
       }
       catch(SQLException e){}
  }
-
- /* Main() */
  
  public void print() {
 	 CourseManager cm = new CourseManager();
@@ -125,19 +198,22 @@ public class CourseManager {
 		 System.out.println("Select User Type: ");
 		 System.out.println("Student: 1\nFaculty: 2\nAdministrator: 3\nExit: 4");
 		 
-		 System.out.print("Your selection: ");
+		 System.out.print("Your selection: ");		 
 		 
 		 int userType = scan.nextInt();
-		 
+			 
 		 System.out.println();
 		 
-		 if (userType == 4) break;
+		 if (userType == 4) {
+			 System.out.println("Bye!");
+			 break;
+		 };
 		 
 		 switch (userType) {
 		 case 1: cm.printStudent(); break;
 		 case 2: cm.printFaculty(); break;
 		 case 3: cm.printAdministrator(); break;
-		 default: System.out.println("Invalid User Type"); break;
+		 default: System.out.println("Invalid User Type, try again\n"); break;
 		 }
 	 }
 	 
@@ -145,8 +221,23 @@ public class CourseManager {
  }
  
  public void printStudent() {
+	 CourseManager cm = new CourseManager();
+	 int id;
 	 while (true) {
-		 //System.out.println("Got in Student");
+		 System.out.println("------------------");
+		 System.out.printf("Enter your ID: ");
+		 
+		 id = scan.nextInt();
+		 
+		 if (!cm.checkIfSIDExists(id)) {
+			 System.out.println("This Student ID does not exist. Try again!");
+			 return;
+		 } else {
+			 break;
+		 }
+	 }
+	
+	 while (true) {
 		 System.out.println("------------------");
 		 System.out.println("Your options are:");
 		 System.out.println("1. Calendar of Evaluations\n2. My Courses\n3. My Grades\n4.Exit");
@@ -160,7 +251,7 @@ public class CourseManager {
 		 
 		 switch (selection) {
 		 case 1: break;
-		 case 2: break;
+		 case 2: cm.printEnrolledCourses(id); break;
 		 case 3: break;
 		 default: System.out.println("Please select a valid option");
 		 }
@@ -169,22 +260,25 @@ public class CourseManager {
  
  public void printFaculty() {
 	 while (true) {
-		 //System.out.println("Got in Faculty");
 		 System.out.println("------------------");
 		 System.out.println("Your options are:");
-		 System.out.println("1. Department Report\n2. Faculty Report\n3. Exit");
+		 System.out.println("1. Create a course\n2. Modify a course\n3. Assign students to a course\n4. Create/Modify an Evaluation\n5. Enter Grades\n6. Report of Classes\n7. Report of Students and Grades\n8. Exit");
 		 System.out.print("Your Selection: ");
 		 
 		 int selection = scan.nextInt();
 		 
 		 System.out.println();
 		 
-		 if (selection == 4) break;
+		 if (selection == 8) break;
 		 
 		 switch (selection) {
-		 case 1: break;
+		 case 1: createCourse(); break;
 		 case 2: break;
 		 case 3: break;
+		 case 4: break;
+		 case 5: break;
+		 case 6: break;
+		 case 7: break;
 		 default: System.out.println("Please select a valid option");
 		 } 
 	 }
@@ -192,7 +286,6 @@ public class CourseManager {
  
  public void printAdministrator() {
 	 while (true) {
-		 //System.out.println("Got in Administrator");
 		 System.out.println("------------------");
 		 System.out.println("Your options are:");
 		 System.out.println("1. Department Report\n2. Faculty Report\n3. Exit");
@@ -205,8 +298,8 @@ public class CourseManager {
 		 if (selection == 3) break;
 		 
 		 switch (selection) {
-		 case 1: break;
-		 case 2: break;
+		 case 1: printDepartmentInfo(); break;
+		 case 2: printFacultyInfo(); break;
 		 default: System.out.println("Please select a vaild option");
 		 }
 	 }
