@@ -4,6 +4,8 @@ import java.sql.*;
 public class CourseManager {
  Connection con;
  
+ Scanner scan = new Scanner(System.in);
+ 
  public CourseManager() {
   try {
    Class.forName( "oracle.jdbc.driver.OracleDriver" );
@@ -118,37 +120,41 @@ public class CourseManager {
  public void print() {
 	 CourseManager cm = new CourseManager();
 	 
-	 Scanner scan = new Scanner(System.in);
-	 System.out.println("------------------");
-	 System.out.println("Select User Type: ");
-	 System.out.println("Student: 1\nFaculty: 2\nAdministrator: 3");
-	 
-	 System.out.print("Your selection: ");
-	 
-	 int userType = scan.nextInt();
-	 
-	 System.out.println();
-	 
-	 switch (userType) {
-	 case 1: System.out.println("Student"); cm.printStudent(); break;
-	 case 2: System.out.println("Faculty"); cm.printFaculty(); break;
-	 case 3: System.out.println("Administrator"); cm.printAdministrator(); break;
-	 default: System.out.println("Invalid User Type"); break;
+	 while (true) {
+		 System.out.println("------------------");
+		 System.out.println("Select User Type: ");
+		 System.out.println("Student: 1\nFaculty: 2\nAdministrator: 3\nExit: 4");
+		 
+		 System.out.print("Your selection: ");
+		 
+		 int userType = scan.nextInt();
+		 
+		 System.out.println();
+		 
+		 if (userType == 4) break;
+		 
+		 switch (userType) {
+		 case 1: cm.printStudent(); break;
+		 case 2: cm.printFaculty(); break;
+		 case 3: cm.printAdministrator(); break;
+		 default: System.out.println("Invalid User Type"); break;
+		 }
 	 }
 	 
 	 scan.close();
  }
  
  public void printStudent() {
-	 Scanner scan = new Scanner(System.in);
 	 while (true) {
 		 //System.out.println("Got in Student");
 		 System.out.println("------------------");
 		 System.out.println("Your options are:");
 		 System.out.println("1. Calendar of Evaluations\n2. My Courses\n3. My Grades\n4.Exit");
-		 System.out.print("Selection: ");
+		 System.out.print("Your Selection: ");
 		 
 		 int selection = scan.nextInt();
+		 
+		 System.out.println();
 		 
 		 if (selection == 4) break;
 		 
@@ -156,19 +162,54 @@ public class CourseManager {
 		 case 1: break;
 		 case 2: break;
 		 case 3: break;
-		 case 4: break;
+		 default: System.out.println("Please select a valid option");
 		 }
-		 
 	 }
-	 scan.close();
  }
  
  public void printFaculty() {
-	 System.out.println("Got in Faculty");
+	 while (true) {
+		 //System.out.println("Got in Faculty");
+		 System.out.println("------------------");
+		 System.out.println("Your options are:");
+		 System.out.println("1. Department Report\n2. Faculty Report\n3. Exit");
+		 System.out.print("Your Selection: ");
+		 
+		 int selection = scan.nextInt();
+		 
+		 System.out.println();
+		 
+		 if (selection == 4) break;
+		 
+		 switch (selection) {
+		 case 1: break;
+		 case 2: break;
+		 case 3: break;
+		 default: System.out.println("Please select a valid option");
+		 } 
+	 }
  }
  
  public void printAdministrator() {
-	 System.out.println("Got in Administrator");
+	 while (true) {
+		 //System.out.println("Got in Administrator");
+		 System.out.println("------------------");
+		 System.out.println("Your options are:");
+		 System.out.println("1. Department Report\n2. Faculty Report\n3. Exit");
+		 System.out.print("Your Selection: ");
+		 
+		 int selection = scan.nextInt();
+		 
+		 System.out.println();
+		 
+		 if (selection == 3) break;
+		 
+		 switch (selection) {
+		 case 1: break;
+		 case 2: break;
+		 default: System.out.println("Please select a vaild option");
+		 }
+	 }
  }
  
  public static void main( String [] args ) {
