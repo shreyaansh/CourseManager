@@ -73,6 +73,23 @@ public class CourseManager {
 	 return false;
  }
  
+ public boolean checkIfCIDExists(int id) {
+	 String query = "Select * from Courses where courseID = " + id;
+	 try {
+		 Statement stmt = con.createStatement();
+		 ResultSet rs = stmt.executeQuery(query);
+		 while (rs.next()) {
+			 int checkID = rs.getInt("courseID");
+			 System.out.printf("Course Name = %s\n", rs.getString("courseName"));
+			 if (checkID == id) return true;
+			 else return false;
+		 }
+	 } catch ( SQLException e ) {
+		 e.printStackTrace();
+	 }
+	 return false;
+ }
+ 
  public boolean checkIfFIDExists(int id) {
 	 String query = "Select * from Faculty where facultyID = " + id;
 	 try {
@@ -171,8 +188,18 @@ public class CourseManager {
 	 
 	 String semester = "default";
 	 while (true) {
-		 System.out.printf("Choose Semester:\n1. Fall\n2. Spring\n3. Summer\nSemester: ");
-		 int semesterInt = scan.nextInt();
+		 System.out.printf("Choose Semester:\n1. Fall\n2. Spring\n3. Summer\n");
+		 int semesterInt = 0;
+		 while (true) {
+			 try {
+				 System.out.print("Semester: ");
+				 semesterInt = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("Enter a number!");
+			 }
+		 }
 		 switch(semesterInt) {
 		 case 1: semester = "Fall"; break;
 		 case 2: semester = "Spring"; break;
@@ -185,8 +212,17 @@ public class CourseManager {
 	 int year = Calendar.getInstance().get(Calendar.YEAR);
 	 
 	 while (true) {
-		 System.out.print("Enter a year (Hint: Should be greater than or equal to the current year): ");
-		 int yearInput = scan.nextInt();
+		 int yearInput = 0;
+		 while (true) {
+			 try {
+				 System.out.print("Enter a year (Hint: Should be greater than or equal to the current year): ");
+				 yearInput = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("Enter a number!");
+			 }
+		 }
 		 if (yearInput < year || yearInput > 2100) {
 			 System.out.println("Enter a valid year between the current year and 2100AD");
 		 } else {
@@ -205,8 +241,17 @@ public class CourseManager {
 	 
 	 int facultyID = 0;
 	 while (true) {
-		 System.out.print("Enter a faculty ID for the professor teching the course: ");
-		 facultyID = scan.nextInt();
+		 while (true) {
+			 try {
+				 System.out.print("Enter a faculty ID for the professor teching the course: ");
+				 facultyID = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("Enter a number!");
+			 }
+		 }
+		 
 		 
 		 if (checkIfFIDExists(facultyID))
 			 break;
@@ -223,13 +268,181 @@ public class CourseManager {
 		 Statement stmt = con.createStatement();
 		 stmt.executeUpdate(update);
 		 stmt.close();
-		 System.out.println("-----Sucessfully Created Course-----");
+		 System.out.println("-----Successfully Created Course-----");
+	 } catch (SQLException e) {
+		 e.printStackTrace();
+	 }
+ }
+ 
+ public void printAvailableCourses(int id) {
+	 String query = "select * from Courses where facultyID = " + id;
+	 
+	 try {
+		 Statement stmt = con.createStatement();
+		 ResultSet rs = stmt.executeQuery(query);
+		 System.out.printf("CourseID: \tCourse Name: \n");
+		 System.out.println("-----------------------------");
+		 while (rs.next()) {
+			 System.out.printf("%-20d%-20s\n", rs.getInt("courseID"), rs.getString("courseName"));
+		 }
+	 } catch (SQLException e) {
+		 e.printStackTrace();
+	 }
+ }
+ 
+ public void deleteCourse(int cid, int fid) {
+	 String update = "Delete from Courses where courseID = " + cid + " and facultyID = " + fid;
+	 try {
+		 Statement stmt = con.createStatement();
+		 stmt.executeUpdate(update);
+		 stmt.close();
+		 System.out.println("-----Successfully Deleted Course-----");
 	 } catch (SQLException e) {
 		 e.printStackTrace();
 	 }
  }
  
  public void modifyCourse(int id) {
+	 CourseManager cm = new CourseManager();
+	 
+	 int courseID = 0;
+	 
+	 System.out.println("Here is the list of the Courses you can modify/delete:");
+	 System.out.println();
+	 
+	 cm.printAvailableCourses(id);
+	 
+	 System.out.print("\nWarning: Entering a courseID not taught by you will result \nin that course not getting updated/deleted!\n");
+	 System.out.println();
+	 
+	 while (true) {
+		 try {
+			 System.out.print("Enter the Course ID of the course that you want to modify: ");
+			 courseID = scan.nextInt();
+			 if (!checkIfCIDExists(courseID)) {
+				 throw new InputMismatchException();
+			 }
+			 break;
+		 } catch (InputMismatchException e) {
+			 scan.nextLine();
+			 System.out.println("Enter a valid course number!");
+		 }
+	 }
+	 
+	 scan.nextLine();
+	 
+	//Delete course
+	 String quit = "no";
+	 while (true) {
+		System.out.print("Do you want to delete this Course (Y/N) ?");
+		quit = scan.nextLine();
+		
+		if (quit.toLowerCase().equals("yes") || quit.toLowerCase().equals("y")) {
+			cm.deleteCourse(courseID, id);
+			return;
+		} else if (quit.toLowerCase().equals("no") || quit.toLowerCase().equals("n")) {
+			break;
+		} else {
+			System.out.println("Enter in the correct format");
+		}
+	 }
+	 
+	 System.out.println("\nEdit the fields you want to modify or enter the old value if you don't want to change the values\n");
+	 
+	 System.out.print("Enter Course Name: ");
+	 String courseName = scan.nextLine();
+	 
+	 String semester = "default";
+	 while (true) {
+		 System.out.printf("Choose Semester:\n1. Fall\n2. Spring\n3. Summer\n");
+		 int semesterInt = 0;
+		 while (true) {
+			 try {
+				 System.out.print("Semester: ");
+				 semesterInt = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("Enter a number!");
+			 }
+		 }
+		 switch(semesterInt) {
+		 case 1: semester = "Fall"; break;
+		 case 2: semester = "Spring"; break;
+		 case 3: semester = "Summer"; break;
+		 default: System.out.println("Enter a vaild number!");
+		 }
+		 if (!semester.equals("default")) break;
+	 }
+	 
+	 int year = Calendar.getInstance().get(Calendar.YEAR);
+	 
+	 while (true) {
+		 int yearInput = 0;
+		 while (true) {
+			 try {
+				 System.out.print("Enter a year (Hint: Should be greater than or equal to the current year): ");
+				 yearInput = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("Enter a number!");
+			 }
+		 }
+		 if (yearInput < year || yearInput > 2100) {
+			 System.out.println("Enter a valid year between the current year and 2100AD");
+		 } else {
+			 year = yearInput;
+			 break;
+		 }
+	 }
+	 
+	 scan.nextLine();
+	 
+	 System.out.print("Enter Class Time: ");
+	 String meetsAt = scan.nextLine();
+	 
+	 System.out.print("Enter Room Number: ");
+	 String room = scan.nextLine();
+	 
+	 int facultyID = 0;
+	 while (true) {
+		 while (true) {
+			 try {
+				 System.out.print("Enter a faculty ID for the professor teching the course: ");
+				 facultyID = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("Enter a number!");
+			 }
+		 }
+		 
+		 
+		 if (checkIfFIDExists(facultyID))
+			 break;
+		 else
+			 System.out.println("Enter a valid Faculty ID");
+	 }
+	 
+	 System.out.println();
+	 //update Courses set courseName = 'STAT 114', semester = 'Summer', year = '2015', meetsAt = '11:30 PM', room = 'ME 472', facultyID = 16 where courseID = 18 and facultyID = 14;
+	 String update = "Update Courses set courseName = '" + courseName + "', semester = '" + semester + "', year = " + year + ", meetsAt = '"
+	 + meetsAt + "', room = '" + room + "', facultyID = " + facultyID + " where courseID = " + courseID + " and facultyID = " + id;
+	 
+	 //System.out.println(update);
+	 
+	 try {
+		 Statement stmt = con.createStatement();
+		 stmt.executeUpdate(update);
+		 stmt.close();
+		 System.out.println("-----Sucessfully Modified Course-----");
+	 } catch (SQLException e) {
+		 e.printStackTrace();
+	 }
+ }
+ 
+ public void assignCourses(int id) {
 	 
  }
  
@@ -298,12 +511,21 @@ public class CourseManager {
 	 while (true) {
 		 System.out.println("------------------");
 		 System.out.println("Select User Type: ");
-		 System.out.println("Student: 1\nFaculty: 2\nAdministrator: 3\nExit: 4");
+		 System.out.println("------------------");
+		 System.out.println("1. Student\n2. Faculty\n3. Administrator\n4. Exit");
+
+		 int userType = 0;
 		 
-		 System.out.print("Your selection: ");		 
-		 
-		 int userType = scan.nextInt();
-			 
+		 while (true) {
+			 try {
+				 System.out.print("\nYour selection: ");
+				 userType = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("\nInput a number!");
+			 }
+		 }
 		 System.out.println();
 		 
 		 if (userType == 4) {
@@ -327,9 +549,17 @@ public class CourseManager {
 	 int id;
 	 while (true) {
 		 System.out.println("------------------");
-		 System.out.printf("Enter your ID: ");
 		 
-		 id = scan.nextInt();
+		 while (true) {
+			 try {
+				 System.out.printf("Enter your ID: ");
+				 id = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("Input a number!");
+			 }
+		 }
 		 
 		 if (!cm.checkIfSIDExists(id)) {
 			 System.out.println("This Student ID does not exist. Try again!");
@@ -343,9 +573,19 @@ public class CourseManager {
 		 System.out.println("------------------");
 		 System.out.println("Your options are:");
 		 System.out.println("1. Calendar of Evaluations\n2. My Courses\n3. My Grades\n4.Exit");
-		 System.out.print("Your Selection: ");
 		 
-		 int selection = scan.nextInt();
+		 int selection = 0;
+		 
+		 while (true) {
+			 try {
+				 System.out.print("\nYour Selection: ");
+				 selection = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("\nInput a number!");
+			 }
+		 }
 		 
 		 System.out.println();
 		 
@@ -365,9 +605,17 @@ public class CourseManager {
 	 int id;
 	 while (true) {
 		 System.out.println("------------------");
-		 System.out.printf("Enter your ID: ");
 		 
-		 id = scan.nextInt();
+		 while (true) {
+			 try {
+				 System.out.printf("Enter your ID: ");
+				 id = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("Input a number!");
+			 }
+		 }
 		 
 		 if (!cm.checkIfFIDExists(id)) {
 			 System.out.println("This Faculty ID does not exist. Try again!");
@@ -381,9 +629,19 @@ public class CourseManager {
 		 System.out.println("------------------");
 		 System.out.println("Your options are:");
 		 System.out.println("1. Create a course\n2. Modify a course\n3. Assign students to a course\n4. Create/Modify an Evaluation\n5. Enter Grades\n6. Report of Classes\n7. Report of Students and Grades\n8. Exit");
-		 System.out.print("Your Selection: ");
 		 
-		 int selection = scan.nextInt();
+		 int selection = 0;
+		 
+		 while (true) {
+			 try {
+				 System.out.print("\nYour Selection: ");
+				 selection = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.println("\nInput a number!");
+			 }
+		 }
 		 
 		 scan.nextLine();
 		 
@@ -394,7 +652,7 @@ public class CourseManager {
 		 switch (selection) {
 		 case 1: createCourse(); break;
 		 case 2: modifyCourse(id); break;
-		 case 3: break;
+		 case 3: //assignStudents(id); break;
 		 case 4: break;
 		 case 5: break;
 		 case 6: break;
@@ -409,9 +667,19 @@ public class CourseManager {
 		 System.out.println("------------------");
 		 System.out.println("Your options are:");
 		 System.out.println("1. Department Report\n2. Faculty Report\n3. Exit");
-		 System.out.print("Your Selection: ");
 		 
-		 int selection = scan.nextInt();
+		 int selection = 0;
+		 
+		 while (true) {
+			 try {
+				 System.out.print("\nYour Selection: ");
+				 selection = scan.nextInt();
+				 break;
+			 } catch (InputMismatchException e) {
+				 scan.nextLine();
+				 System.out.print("\nInput a number!\n");
+			 }
+		 }
 		 
 		 System.out.println();
 		 
